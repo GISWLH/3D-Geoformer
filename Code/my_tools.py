@@ -73,7 +73,19 @@ class make_embedding(nn.Module):
     def forward(self, x):
         assert len(x.size()) == 4
         embedded_space = self.emb_space(self.spatial_pos)
-        x = self.linear(x) + self.pe_time[:, :, : x.size(2)] + embedded_space
+
+        x = self.linear(x)
+        pe_time = self.pe_time.expand_as(x)
+        print("first embedded_space shape:", embedded_space.shape)
+        print("first x shape:", x.shape)
+        embedded_space = embedded_space.repeat(x.size(0), x.size(1) // embedded_space.size(1), x.size(2), 1)
+
+        print("x shape:", x.shape)
+        print("pe_time shape:", self.pe_time[:, :, : x.size(2)].shape)
+        print("embedded_space shape:", embedded_space.shape)
+
+        x = x + pe_time + embedded_space
+        #x = self.linear(x) + self.pe_time[:, :, : x.size(2)] + embedded_space
         return self.norm(x)
 
 
